@@ -121,40 +121,75 @@ El uso de hilos ha sido fundamental para gestionar múltiples clientes y mantene
 ## Replicación del Proyecto
 
 ### 1. Requisitos Previos
-
-- **Python 3.x** instalado en el sistema.
-- **Git** para clonar el repositorio.
-- **Editor de texto/IDE** (VS Code, PyCharm, etc.) y **Terminal/Command Prompt**.
+- Python 3.x instalado en el sistema.
+- Git para clonar el repositorio.
+- Editor de texto/IDE (VS Code, PyCharm, etc.) y Terminal/Command Prompt.
+- Acceso a una instancia EC2 en AWS (para la ejecución del servidor).
 
 ### 2. Clonar el Repositorio
 
-Ejecute el siguiente comando en su terminal:
+Ejecute el siguiente comando en su terminal para clonar el proyecto:
 
 ```bash
-git clone https://github.com/your-username/your-repo-name.git
+git clone https://github.com/jmcastrom/Protocolo-Chat-TCP.git
 ```
 
 ### 3. Navegar al Proyecto
 Acceda al directorio del proyecto:
 
-bash
-Copy code
-cd your-repo-name
-4. Ejecutar el Servidor
-Inicie el servidor con:
+```bash
+cd Protocolo-Chat-TCP
+```
+### 4. Ejecutar el Servidor
+Para ejecutar el servidor, lo haremos desde una instancia EC2 en AWS. Los pasos son los siguientes:
 
-bash
-Copy code
+Asegúrese de tener acceso a una instancia EC2 en AWS.
+
+Conéctate a la instancia EC2 utilizando SSH:
+
+```bash
+ssh -i <your-key-pair>.pem ec2-user@<your-ec2-instance-public-ip>
+```
+Una vez conectado, clone el repositorio dentro de la instancia:
+
+```
+git clone https://github.com/jmcastrom/Protocolo-Chat-TCP.git
+```
+Navega al directorio del proyecto:
+
+```bash
+cd Protocolo-Chat-TCP
+```
+Inicia el servidor con el siguiente comando:
+
+```bash
 python server.py
-5. Ejecutar el Cliente
-Abra otro terminal y ejecute el cliente:
+```
+El servidor comenzará a escuchar las conexiones en el puerto especificado dentro del código.
 
-bash
-Copy code
+### 5. Ejecutar el Cliente
+Para ejecutar el cliente en su máquina local, abra otro terminal y navegue al directorio del proyecto. Asegúrese de que el servidor ya esté ejecutándose en la instancia EC2 antes de ejecutar el cliente.
+
+Ejecute el siguiente comando para iniciar el cliente:
+
+```bash
 python client.py
-6. Comandos Disponibles
-Unirse a una sala: Escribe el nombre de la sala.
-Enviar mensaje: Simplemente escribe el mensaje.
-Comandos especiales: LOVE (envía ❤️), EXIT (sale de la sala).
-Salir del programa: Usa QUIT.
+```
+### 6. Comandos Disponibles
+
+Dentro de la aplicación de chat, puedes utilizar los siguientes comandos:
+
+- **Unirse a una sala**: Escribe el nombre de la sala para unirte (por ejemplo, `Sala1`). Si la sala no existe, se creará automáticamente.
+- **Enviar mensaje**: Simplemente escribe el mensaje que deseas enviar.
+- **Comandos especiales**:
+  - `LOVE`: Enviará el emoji ❤️ a todos los usuarios de la sala.
+  - `EXIT`: Saldrá de la sala actual.
+- **Salir del programa**: Usa `QUIT` para salir completamente de la aplicación.
+
+## Referencias
+
+- [Python socket module](https://docs.python.org/3/library/socket.html)
+- [RFC 1459: Internet Relay Chat Protocol](https://tools.ietf.org/html/rfc1459)
+- Materiales del curso ST0255 – Telemática
+- [Socket Programming in Python (Real Python)](https://realpython.com/python-sockets/)
 
