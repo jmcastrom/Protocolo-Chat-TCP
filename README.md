@@ -134,3 +134,27 @@ Ejecute el siguiente comando en su terminal:
 git clone https://github.com/your-username/your-repo-name.git
 ```
 
+### 3. Navegar al Proyecto
+Acceda al directorio del proyecto:
+
+bash
+Copy code
+cd your-repo-name
+4. Ejecutar el Servidor
+Inicie el servidor con:
+
+bash
+Copy code
+python server.py
+5. Ejecutar el Cliente
+Abra otro terminal y ejecute el cliente:
+
+bash
+Copy code
+python client.py
+6. Comandos Disponibles
+Unirse a una sala: Escribe el nombre de la sala.
+Enviar mensaje: Simplemente escribe el mensaje.
+Comandos especiales: LOVE (envía ❤️), EXIT (sale de la sala).
+Salir del programa: Usa QUIT.
+
