@@ -118,6 +118,108 @@ Sin embargo, aún existen áreas de mejora, especialmente en cuanto a la adició
 
 El uso de hilos ha sido fundamental para gestionar múltiples clientes y mantener la aplicación responsiva, tanto en el cliente como en el servidor. Sin embargo, se debe tener cuidado con posibles problemas de sincronización y recursos compartidos si se escalan las funcionalidades del sistema.
 
+# RFC: Protocolo de Chat TCP - Wassop
+
+## 1. Introducción
+
+Este documento describe el Protocolo de Comunicación de Chat TCP utilizado en el sistema de chat "Wassop". El protocolo define la interacción entre el servidor y los clientes, incluyendo la gestión de salas, transmisión de mensajes y comandos especiales. Este protocolo se implementa utilizando conexiones TCP entre los clientes y un servidor central, y permite la creación dinámica de salas de chat donde múltiples usuarios pueden interactuar en tiempo real.
+
+## 2. Alcance
+
+El propósito del protocolo es proporcionar una infraestructura básica para la comunicación en tiempo real entre varios usuarios conectados a través de un servidor. Los usuarios pueden unirse a salas, enviar mensajes, ejecutar comandos interactivos y desconectarse del servidor.
+
+Este protocolo no incluye características avanzadas como encriptación, autenticación de usuarios o transferencia de archivos.
+
+## 3. Terminología
+
+- **Cliente**: Usuario que se conecta al servidor para participar en el chat.
+- **Servidor**: Punto central de comunicación que gestiona las conexiones de los clientes y la retransmisión de mensajes.
+- **Sala**: Espacio virtual donde los clientes pueden enviar y recibir mensajes. Un cliente puede unirse a una sala existente o crear una nueva.
+- **Mensaje**: Texto enviado por un cliente y retransmitido por el servidor a otros clientes en la misma sala.
+
+## 4. Arquitectura
+
+El protocolo de chat está basado en el modelo Cliente-Servidor con TCP como protocolo de transporte. Los clientes se conectan al servidor a través de un socket TCP, y todas las comunicaciones se realizan utilizando esta conexión persistente.
+
+### 4.1 Modelo Cliente-Servidor
+- **Servidor**: Escucha en un puerto específico y maneja múltiples conexiones de clientes mediante hilos.
+- **Cliente**: Se conecta al servidor y puede interactuar con otros clientes en la misma sala de chat.
+
+## 5. Comandos
+
+### 5.1 Formato de Comandos
+Cada comando enviado desde el cliente al servidor sigue este formato:
+
+`<COMANDO> [Argumento]`
+
+
+Donde `<COMANDO>` es la acción que se desea realizar (por ejemplo, unirse a una sala o enviar un mensaje), y `[Argumento]` es el parámetro adicional necesario para ejecutar el comando.
+
+### 5.2 Lista de Comandos
+
+- **JOIN [nombre_usuario]**: El cliente se conecta al servidor con un nombre de usuario. Si el nombre ya está en uso, el servidor devolverá un error.
+  
+- **ROOM [nombre_sala]**: El cliente se une a la sala indicada o crea una nueva si no existe. El servidor confirma la unión a la sala.
+  
+- **LIST_ROOMS**: Solicita una lista de todas las salas activas en el servidor.
+  
+- **EXIT [nombre_sala]**: El cliente abandona la sala indicada. El servidor notifica a los otros usuarios en la sala sobre la salida.
+  
+- **MESSAGE [mensaje]**: Envia un mensaje de texto a todos los usuarios en la sala actual.
+  
+- **QUIT**: Cierra la conexión con el servidor y termina la sesión del cliente.
+
+### 5.3 Comandos Interactivos
+
+- **LOVE**: Envía el emoji ❤️ a todos los usuarios de la sala.
+- **EXIT**: Comando especial para salir de la sala actual y volver al menú principal.
+
+## 6. Comunicación y Flujos
+
+### 6.1 Proceso de Conexión
+1. El cliente se conecta al servidor utilizando TCP.
+2. El cliente envía el comando `JOIN [nombre_usuario]` para identificarse.
+3. El servidor responde con `OK` si la conexión es exitosa o `ERROR` si el nombre de usuario ya está en uso.
+
+### 6.2 Creación y Unión a Salas
+1. El cliente solicita unirse a una sala con el comando `ROOM [nombre_sala]`.
+2. Si la sala no existe, el servidor la crea y añade al cliente.
+3. El servidor retransmite todos los mensajes a los miembros de la sala.
+
+### 6.3 Mensajería en Salas
+- Los mensajes se envían utilizando el comando `MESSAGE [mensaje]`.
+- El servidor retransmite el mensaje a todos los usuarios en la misma sala excepto al remitente.
+
+### 6.4 Salida de la Sala y Cierre de Sesión
+1. Para salir de una sala, el cliente utiliza el comando `EXIT [nombre_sala]`.
+2. Para desconectarse completamente del servidor, el cliente envía el comando `QUIT`.
+
+## 7. Manejando Errores
+
+### 7.1 Reconexión
+Si un cliente pierde la conexión, el servidor elimina su sesión. El cliente puede intentar reconectarse enviando nuevamente el comando `JOIN`.
+
+### 7.2 Manejo de Nombres de Usuario en Uso
+Si un usuario intenta conectarse con un nombre que ya está en uso, el servidor responde con `ERROR: Username ya en uso`.
+
+## 8. Seguridad y Limitaciones
+
+### 8.1 Seguridad
+- **Sin encriptación**: Los mensajes se envían en texto plano, lo que significa que son vulnerables a ser interceptados.
+- **Sin autenticación**: Cualquier usuario puede conectarse con cualquier nombre de usuario sin necesidad de autenticarse.
+
+### 8.2 Limitaciones
+- No hay soporte para la transferencia de archivos.
+- No se almacena un historial de mensajes, por lo que los usuarios no pueden ver mensajes anteriores al unirse a una sala.
+
+## 9. Conclusiones y Futuras Mejoras
+
+Este protocolo ha sido diseñado para ofrecer un chat en tiempo real con múltiples usuarios y salas. Funciona de manera efectiva para sesiones de chat, pero existen áreas clave de mejora:
+
+- **Seguridad**: Implementar encriptación (TLS) y autenticación de usuarios para mejorar la privacidad y el control de acceso.
+- **Persistencia de mensajes**: Permitir que los usuarios accedan a un historial de mensajes al entrar en una sala.
+- **Transferencia de archivos**: Agregar soporte para la transmisión de archivos entre usuarios.
+
 ## Replicación del Proyecto
 
 ### 1. Requisitos Previos
