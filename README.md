@@ -110,6 +110,39 @@ Retransmitiendo a todos los usuarios de Sala1.
 3. **Autenticación y control de acceso**: Actualmente, cualquier usuario puede unirse a cualquier sala sin restricciones, lo que limita el control sobre quién accede a qué sala.
 4. **Encriptación de mensajes**: Los mensajes se envían sin cifrado, lo que podría ser un riesgo en redes no seguras.
 
+## Elección del Protocolo de Transporte: TCP vs UDP
+
+### ¿Por qué se escogió TCP en lugar de UDP?
+
+La elección del protocolo de transporte fue una de las decisiones clave en el diseño de esta aplicación de chat. Para garantizar una comunicación eficiente, confiable y en tiempo real entre los usuarios, se eligió TCP (Transmission Control Protocol) en lugar de UDP (User Datagram Protocol) por las siguientes razones:
+
+1. **Confiabilidad**: 
+   - TCP es un protocolo orientado a la conexión que garantiza que los mensajes lleguen en el orden correcto y sin pérdidas. Esto es crucial en una aplicación de chat, donde cada mensaje debe entregarse sin errores para asegurar una conversación coherente entre los usuarios.
+   - UDP, por otro lado, no garantiza la entrega de paquetes ni el orden, lo que podría llevar a la pérdida o entrega desordenada de los mensajes, generando confusión en las conversaciones.
+
+2. **Control de flujo y congestión**: 
+   - TCP incluye mecanismos de control de flujo y congestión, lo que significa que ajusta dinámicamente la velocidad de transmisión de datos según las condiciones de la red. Esto asegura que la comunicación se mantenga estable incluso si la red experimenta fluctuaciones de rendimiento.
+   - UDP, al no tener control de flujo, puede inundar la red con paquetes sin considerar la capacidad de la red o del cliente para procesar esos paquetes.
+
+3. **Integridad de los datos**:
+   - TCP utiliza un sistema de verificación para asegurarse de que los datos lleguen completos y sin errores. En el contexto de un chat, esto es fundamental para que los mensajes no se corrompan durante la transmisión.
+   - En UDP, la verificación de la integridad de los datos es mínima, por lo que podría haber problemas si algunos paquetes se pierden o se corrompen.
+
+4. **Necesidad de una conexión estable**:
+   - Dado que en este proyecto los usuarios deben mantenerse conectados durante toda la sesión de chat, TCP es ideal porque establece y mantiene una conexión entre el servidor y el cliente mientras dure la sesión. Esto permite que los mensajes fluyan de forma continua.
+   - UDP, al ser un protocolo sin conexión, no establece este tipo de vínculo persistente entre cliente y servidor, lo que podría causar interrupciones si hay problemas en la red.
+
+5. **Manejo de sesiones largas**:
+   - En una aplicación de chat, los usuarios suelen permanecer conectados durante periodos prolongados de tiempo. TCP es más adecuado para este tipo de sesiones largas porque gestiona el estado de la conexión, garantizando que el flujo de mensajes se mantenga estable.
+   - UDP, al no mantener el estado de la conexión, es más adecuado para aplicaciones donde la velocidad y la eficiencia son prioritarias sobre la confiabilidad, como en el streaming de video o juegos en línea, pero no en una aplicación de chat.
+
+### ¿Por qué no se eligió UDP?
+
+Si bien **UDP** tiene ventajas en términos de simplicidad y velocidad, no es adecuado para aplicaciones de chat debido a la falta de mecanismos de control y confiabilidad. En aplicaciones donde la prioridad es la entrega rápida pero no necesariamente confiable (como transmisiones en tiempo real o ciertos tipos de videojuegos), UDP sería una opción preferible, pero para la comunicación texto a texto, la confiabilidad y el orden de los mensajes es esencial, lo que justifica la elección de TCP.
+
+En resumen, la naturaleza confiable y orientada a la conexión de **TCP** lo convierte en la mejor opción para asegurar una experiencia de chat fluida y coherente entre los usuarios.
+
+
 ## Conclusiones
 
 Este proyecto ha demostrado la capacidad de implementar una aplicación de chat en tiempo real utilizando los principios básicos de los sockets TCP en Python. El sistema ha logrado satisfacer los requisitos fundamentales, como permitir la comunicación entre múltiples usuarios y la creación de salas de chat dinámicas.
@@ -219,6 +252,133 @@ Este protocolo ha sido diseñado para ofrecer un chat en tiempo real con múltip
 - **Seguridad**: Implementar encriptación (TLS) y autenticación de usuarios para mejorar la privacidad y el control de acceso.
 - **Persistencia de mensajes**: Permitir que los usuarios accedan a un historial de mensajes al entrar en una sala.
 - **Transferencia de archivos**: Agregar soporte para la transmisión de archivos entre usuarios.
+
+# Descripción de cada método en el código
+
+## Cliente
+
+### 1. `recibir_mensajes(client_socket)`
+**Descripción**: Esta función se ejecuta en un hilo separado y se encarga de recibir los mensajes enviados por el servidor al cliente. Escucha continuamente la conexión y, cuando recibe un mensaje, lo muestra en la pantalla del usuario.
+- **Argumentos**:
+  - `client_socket`: El socket del cliente que está conectado al servidor.
+- **Detalles**:
+  - Escucha mensajes en un bucle continuo mientras la variable `bandera_salida` sea `False`.
+  - Muestra el mensaje en la consola, pero si la conexión se cierra, detecta el error y termina.
+
+### 2. `comando_listar_salas(client_socket)`
+**Descripción**: Esta función envía una solicitud al servidor para obtener una lista de todas las salas activas y muestra esta lista al usuario.
+- **Argumentos**:
+  - `client_socket`: El socket del cliente.
+- **Detalles**:
+  - Envia el comando `LIST_ROOMS` al servidor.
+  - Recibe la lista de salas disponibles y las imprime.
+
+### 3. `comando_unirse_sala(client_socket, username, comando)`
+**Descripción**: Permite que el usuario se una a una sala existente o cree una nueva si no existe. Una vez unido, el cliente interactúa con otros usuarios de esa sala.
+- **Argumentos**:
+  - `client_socket`: El socket del cliente.
+  - `username`: El nombre del usuario que intenta unirse a la sala.
+  - `comando`: El nombre de la sala a la que el usuario quiere unirse.
+- **Detalles**:
+  - Envía el comando `ROOM [nombre_sala]` al servidor.
+  - Si la unión a la sala es exitosa, comienza a recibir mensajes de esa sala y permite la interacción con otros usuarios.
+
+### 4. `comando_salir(client_socket)`
+**Descripción**: Cierra la conexión del cliente con el servidor y termina el programa.
+- **Argumentos**:
+  - `client_socket`: El socket del cliente.
+- **Detalles**:
+  - Imprime un mensaje de salida, cierra el socket y termina la ejecución con `sys.exit()`.
+
+### 5. `interactuar_en_sala(client_socket, username, nombre_sala)`
+**Descripción**: Proporciona la lógica principal de la interacción del usuario dentro de una sala. Permite al cliente enviar mensajes o comandos especiales, y salir de la sala con el comando `EXIT`.
+- **Argumentos**:
+  - `client_socket`: El socket del cliente.
+  - `username`: El nombre del usuario que está interactuando en la sala.
+  - `nombre_sala`: El nombre de la sala actual.
+- **Detalles**:
+  - Recibe la entrada del usuario continuamente mientras esté en la sala.
+  - Envía los mensajes al servidor utilizando el comando `MESSAGE`.
+  - Si el usuario escribe `EXIT`, sale de la sala y regresa al menú principal.
+
+### 6. `enviar_comando(client_socket, comando)`
+**Descripción**: Esta función envía un comando o mensaje desde el cliente al servidor.
+- **Argumentos**:
+  - `client_socket`: El socket del cliente.
+  - `comando`: El comando que se va a enviar al servidor.
+- **Detalles**:
+  - Envía el comando formateado con una nueva línea (`\n`) codificado en UTF-8.
+
+### 7. `menu_principal(client_socket, username)`
+**Descripción**: Muestra el menú principal del cliente, permitiendo al usuario unirse a una sala, listar las salas disponibles, o salir de la aplicación.
+- **Argumentos**:
+  - `client_socket`: El socket del cliente.
+  - `username`: El nombre de usuario del cliente.
+- **Detalles**:
+  - Permite al usuario elegir una sala, listar salas o salir.
+  - En función del comando, llama a otras funciones como `comando_listar_salas`, `comando_unirse_sala`, o `comando_salir`.
+
+### 8. `cliente_tcp()`
+**Descripción**: Es la función principal que establece la conexión TCP con el servidor y gestiona el ciclo de vida del cliente.
+- **Detalles**:
+  - Crea un socket y lo conecta al servidor utilizando la IP y puerto configurados.
+  - Solicita al usuario su nombre de usuario y lo registra en el servidor usando el comando `JOIN`.
+  - Llama al `menu_principal` para comenzar la interacción con el sistema.
+
+---
+
+## Servidor
+
+### 1. `manejar_cliente(conn, addr)`
+**Descripción**: Esta función maneja las conexiones de los clientes. Se ejecuta en un hilo por cada cliente conectado y se encarga de recibir comandos, procesarlos y enviar respuestas o retransmitir mensajes a las salas.
+- **Argumentos**:
+  - `conn`: El socket del cliente conectado.
+  - `addr`: La dirección IP y puerto del cliente.
+- **Detalles**:
+  - Interpreta los comandos `JOIN`, `ROOM`, `LIST_ROOMS`, `EXIT`, y `MESSAGE` enviados por el cliente.
+  - Actualiza el estado del cliente, como su sala actual y el diccionario de usuarios conectados.
+  - Gestiona la desconexión de clientes y notifica al resto de la sala cuando un cliente se desconecta o abandona.
+
+### 2. `enviar_lista_salas(conn)`
+**Descripción**: Envía al cliente una lista de todas las salas activas en el servidor.
+- **Argumentos**:
+  - `conn`: El socket del cliente.
+- **Detalles**:
+  - Formatea la lista de salas disponibles y la envía al cliente.
+
+### 3. `notificar_sala(sala, mensaje, remitente)`
+**Descripción**: Envía un mensaje a todos los clientes en una sala excepto al remitente del mensaje.
+- **Argumentos**:
+  - `sala`: El nombre de la sala donde se va a retransmitir el mensaje.
+  - `mensaje`: El mensaje que se va a enviar.
+  - `remitente`: El nombre del usuario que envió el mensaje (para evitar que el mensaje le sea reenviado a él).
+- **Detalles**:
+  - Itera sobre los usuarios en la sala y envía el mensaje a todos excepto al remitente.
+  - Maneja excepciones como `BrokenPipeError` si la conexión con un cliente falla.
+
+### 4. `cerrar_servidor(signal, frame)`
+**Descripción**: Cierra el servidor de manera segura cuando se recibe una señal de interrupción (como `Ctrl + C`).
+- **Argumentos**:
+  - `signal`: La señal recibida.
+  - `frame`: El frame actual de la ejecución.
+- **Detalles**:
+  - Cierra el socket del servidor y termina la ejecución del programa.
+
+### 5. `servidor_tcp()`
+**Descripción**: Es la función principal que inicia el servidor y gestiona las conexiones entrantes.
+- **Detalles**:
+  - Crea un socket TCP y lo enlaza a una dirección IP y puerto.
+  - Escucha conexiones entrantes en un bucle continuo y para cada conexión crea un nuevo hilo que ejecuta `manejar_cliente`.
+
+---
+
+## Flujo General de Ejecución
+
+1. **Servidor**: El servidor se inicia y escucha conexiones en un puerto específico. Cuando un cliente se conecta, se inicia un hilo para manejar a ese cliente.
+2. **Cliente**: El cliente se conecta al servidor, envía su nombre de usuario y puede unirse a salas, enviar mensajes, listar salas o salir de la aplicación.
+3. **Comunicación**: Los mensajes de los clientes se envían al servidor, que los retransmite a los demás usuarios en la misma sala.
+4. **Cierre**: Los clientes pueden desconectarse en cualquier momento, y el servidor gestiona la desconexión notificando a los otros usuarios de la sala.
+
 
 ## Replicación del Proyecto
 
