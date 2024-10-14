@@ -2,7 +2,14 @@ import socket
 import threading
 import signal
 import sys
-from constants import SERVER_IP, SERVER_PORT, BUFFER_SIZE
+
+# Dirección IP Privada del servidor EC2
+SERVER_IP = 'xx.xxx.xxx.xx'
+
+SERVER_PORT = 5555
+
+BUFFER_SIZE = 1024
+
 
 # Diccionario de salas: {nombre_sala: [usuarios]}
 salas = {"Sala1": []}
