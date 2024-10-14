@@ -27,7 +27,7 @@ El cliente está diseñado para conectarse al servidor utilizando el protocolo T
     - Una vez conectado, el cliente puede interactuar con el sistema mediante comandos sencillos:
         - **Unirse a una sala**: El usuario puede escribir el nombre de una sala para unirse a ella. Si la sala no existe, el sistema la crea automáticamente.
         - **Enviar mensajes**: Dentro de una sala, los usuarios pueden enviar mensajes de texto a todos los demás miembros de esa sala.
-        - **Comandos especiales**: Se han agregado algunos comandos para mejorar la interacción, como enviar emojis (`LOVE`) o abandonar la sala (`EXIT`).
+        - **Comandos especiales**: Se han agregado algunos comandos para mejorar la interacción, como enviar emojis o abandonar la sala (`EXIT`).
         - **Listar salas**: Los usuarios pueden obtener una lista de todas las salas disponibles en el servidor.
         - **Salir de la aplicación**: Los usuarios pueden abandonar la aplicación cerrando la conexión de manera segura.
 
@@ -36,7 +36,7 @@ El cliente está diseñado para conectarse al servidor utilizando el protocolo T
     - Esto permite que el cliente reciba mensajes de otros usuarios en tiempo real sin que interfieran con la capacidad de enviar mensajes.
 
 4. **Interacción y comandos avanzados**:
-    - El cliente soporta comandos interactivos como enviar emojis (`LOVE`) o confirmar la salida de la sala.
+    - El cliente soporta comandos interactivos.
     - Los mensajes se muestran en formato: "Tú: <mensaje>", para diferenciar los mensajes propios de los recibidos.
 
 #### Ejemplo de flujo de interacción del cliente:
@@ -62,6 +62,8 @@ Te has unido a la sala Sala1.
 
 Has entrado a la sala Sala1. Escribe mensajes o usa EXIT para regresar al menú principal.
 Tú: hola a todos!
+
+Usuario2: hola!
 ```
 ### Servidor
 
