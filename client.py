@@ -1,7 +1,14 @@
 import socket
 import threading
 import sys
-from constants import SERVER_IP, SERVER_PORT, BUFFER_SIZE
+
+# Dirección IP Pública del servidor EC2
+SERVER_IP = 'xx.xxx.xxx.xx'
+
+SERVER_PORT = 5555
+
+BUFFER_SIZE = 1024
+
 
 # Bandera global para controlar la finalización del hilo de recepción
 bandera_salida = False
