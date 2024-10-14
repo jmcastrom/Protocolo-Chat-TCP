@@ -5,9 +5,9 @@
 
 ## Introducción
 
-Este proyecto consiste en el desarrollo de una aplicación de chat multiusuario en tiempo real, utilizando el protocolo TCP/IP. El sistema está diseñado para soportar múltiples usuarios conectados a través de un servidor central, donde cada usuario puede unirse o abandonar diferentes salas de chat. A lo largo del desarrollo se ha puesto énfasis en la simplicidad, eficiencia, y facilidad de uso para los usuarios, con funcionalidades básicas de comunicación y opciones interactivas adicionales como emojis.
+Este proyecto consiste en el desarrollo de una aplicación de chat multiusuario en tiempo real, utilizando el protocolo TCP/IP. El sistema está diseñado para soportar múltiples usuarios conectados a través de un servidor central, donde cada usuario puede unirse o abandonar diferentes salas de chat. A lo largo del desarrollo se ha puesto énfasis en la simplicidad, eficiencia, y facilidad de uso para los usuarios, con funcionalidades básicas de comunicación y opciones interactivas adicionales, priorizando la comunicacion en tiempo real en cualquier momento.
 
-La motivación detrás del proyecto es estudiar la implementación de protocolos de comunicación mediante sockets en Python, y cómo gestionar múltiples conexiones simultáneas de manera eficiente utilizando `threading`. Este proyecto forma parte de un curso de telemática, donde se busca comprender cómo funcionan las redes, los protocolos de transporte, y cómo llevar estas teorías a la práctica en una aplicación de la vida real.
+La motivación detrás del proyecto es estudiar la implementación de protocolos de comunicación mediante sockets en Python, y cómo gestionar múltiples conexiones simultáneas de manera eficiente utilizando `threading`. Este proyecto forma parte del curso de Telemática, donde se busca comprender cómo funcionan las redes, los protocolos de transporte, y cómo llevar estas teorías a la práctica en una aplicación de uso cotidiano.
 
 ## Desarrollo
 
