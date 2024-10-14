@@ -52,8 +52,8 @@ Te has unido como juanmi.
 ¡Únete a una sala!
 Para unirte a una sala, solo escribe su nombre: <nombre_sala>
 Salas disponibles:
-Sala1
-Sala2
+Sala1 (0)
+Sala2 (2)
 * Actualizar salas disponibles: REFR
 * Salir de la aplicación: QUIT
 
@@ -62,8 +62,6 @@ Te has unido a la sala Sala1.
 
 Has entrado a la sala Sala1. Escribe mensajes o usa EXIT para regresar al menú principal.
 Tú: hola a todos!
-
-Usuario2: hola!
 ```
 ### Servidor
 
@@ -124,7 +122,7 @@ La aplicación de chat sigue una arquitectura cliente-servidor, donde múltiples
 1. **Comunicación en tiempo real**: El sistema permite la comunicación fluida entre múltiples usuarios en tiempo real a través de salas.
 2. **Soporte para múltiples salas**: Los usuarios pueden crear o unirse a diferentes salas de chat, sin límite en el número de salas activas.
 3. **Gestión robusta de desconexiones**: El servidor es capaz de manejar desconexiones de clientes sin interrumpir el funcionamiento de la sala ni afectar a otros usuarios.
-4. **Soporte básico para comandos interactivos**: Se han añadido comandos como enviar emojis (`LOVE`), listar salas, y salir de la sala (`EXIT`).
+4. **Soporte básico para comandos interactivos**: Se han añadido comandos como enviar emojis (`LOVE`), (`LIKE`) o (`DISLIKE`), listar salas, y salir de la sala (`EXIT`).
 
 ### Aspectos no logrados:
 
