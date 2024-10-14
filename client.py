@@ -79,6 +79,15 @@ def interactuar_en_sala(client_socket, username, nombre_sala):
             mensaje = "❤️❤️❤️"
             print(f"\nTú: {mensaje}")  # Mostrar el mensaje como "Tú"
             enviar_comando(client_socket, f"MESSAGE {mensaje}")  # Usamos el comando MESSAGE para transmitir
+        elif mensaje == "LIKE":
+            mensaje = "👍"
+            print(f"\nTú: {mensaje}")  # Mostrar el mensaje como "Tú"
+            enviar_comando(client_socket, f"MESSAGE {mensaje}")  # Usamos el comando MESSAGE para transmitir
+        elif mensaje == "DISLIKE":
+            mensaje = "👎"
+            print(f"\nTú: {mensaje}")  # Mostrar el mensaje como "Tú"
+            enviar_comando(client_socket, f"MESSAGE {mensaje}")  # Usamos el comando MESSAGE para transmitir
+        
         else:
             # Aquí enviamos el mensaje y mostramos "Tú" en el cliente local
             print(f"\nTú: {mensaje}")  # Mostrar el mensaje como "Tú"
