@@ -114,131 +114,6 @@ La aplicación de chat sigue una arquitectura cliente-servidor, donde múltiples
 ![Diagrama de Arquitectura](https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEimbNVd8c7SGDFMRVL3D810CeOyQi9DR9xpDVVbSyb9EyuciwsuZyM1D7SVMngKb4iqwLMwp3UreHTW5pM-SiEC-5jM3JSCbktTap5wz60AWv6xXg1I7GRlILgccjclc2SCeduYv3veRFUJ/s1600/ClienteServidor.png)
 
 
-
-## Aspectos Logrados y No logrados
-
-### Aspectos logrados:
-
-1. **Comunicación en tiempo real**: El sistema permite la comunicación fluida entre múltiples usuarios en tiempo real a través de salas.
-2. **Soporte para múltiples salas**: Los usuarios pueden crear o unirse a diferentes salas de chat, sin límite en el número de salas activas.
-3. **Gestión robusta de desconexiones**: El servidor es capaz de manejar desconexiones de clientes sin interrumpir el funcionamiento de la sala ni afectar a otros usuarios.
-4. **Soporte básico para comandos interactivos**: Se han añadido comandos como enviar emojis (`LOVE`), (`LIKE`) o (`DISLIKE`), listar salas, y salir de la sala (`EXIT`).
-
-### Aspectos no logrados:
-
-1. **Transferencia de archivos**: No se ha implementado el soporte para enviar archivos entre los usuarios.
-2. **Persistencia de mensajes**: No se almacena un historial de los mensajes de chat, por lo que los usuarios no pueden ver mensajes anteriores si se conectan más tarde.
-3. **Autenticación y control de acceso**: Actualmente, cualquier usuario puede unirse a cualquier sala sin restricciones, lo que limita el control sobre quién accede a qué sala.
-4. **Encriptación de mensajes**: Los mensajes se envían sin cifrado, lo que podría ser un riesgo en redes no seguras.
-
-## Elección del Protocolo de Transporte: TCP vs UDP
-
-### ¿Por qué se escogió TCP en lugar de UDP?
-
-La elección del protocolo de transporte fue una de las decisiones clave en el diseño de esta aplicación de chat. Para garantizar una comunicación eficiente, confiable y en tiempo real entre los usuarios, se eligió TCP (Transmission Control Protocol) en lugar de UDP (User Datagram Protocol) por las siguientes razones:
-
-1. **Confiabilidad**: 
-   - TCP es un protocolo orientado a la conexión que garantiza que los mensajes lleguen en el orden correcto y sin pérdidas. Esto es crucial en una aplicación de chat, donde cada mensaje debe entregarse sin errores para asegurar una conversación coherente entre los usuarios.
-   - UDP, por otro lado, no garantiza la entrega de paquetes ni el orden, lo que podría llevar a la pérdida o entrega desordenada de los mensajes, generando confusión en las conversaciones.
-
-2. **Control de flujo y congestión**: 
-   - TCP incluye mecanismos de control de flujo y congestión, lo que significa que ajusta dinámicamente la velocidad de transmisión de datos según las condiciones de la red. Esto asegura que la comunicación se mantenga estable incluso si la red experimenta fluctuaciones de rendimiento.
-   - UDP, al no tener control de flujo, puede inundar la red con paquetes sin considerar la capacidad de la red o del cliente para procesar esos paquetes.
-
-3. **Integridad de los datos**:
-   - TCP utiliza un sistema de verificación para asegurarse de que los datos lleguen completos y sin errores. En el contexto de un chat, esto es fundamental para que los mensajes no se corrompan durante la transmisión.
-   - En UDP, la verificación de la integridad de los datos es mínima, por lo que podría haber problemas si algunos paquetes se pierden o se corrompen.
-
-4. **Necesidad de una conexión estable**:
-   - Dado que en este proyecto los usuarios deben mantenerse conectados durante toda la sesión de chat, TCP es ideal porque establece y mantiene una conexión entre el servidor y el cliente mientras dure la sesión. Esto permite que los mensajes fluyan de forma continua.
-   - UDP, al ser un protocolo sin conexión, no establece este tipo de vínculo persistente entre cliente y servidor, lo que podría causar interrupciones si hay problemas en la red.
-
-5. **Manejo de sesiones largas**:
-   - En una aplicación de chat, los usuarios suelen permanecer conectados durante periodos prolongados de tiempo. TCP es más adecuado para este tipo de sesiones largas porque gestiona el estado de la conexión, garantizando que el flujo de mensajes se mantenga estable.
-   - UDP, al no mantener el estado de la conexión, es más adecuado para aplicaciones donde la velocidad y la eficiencia son prioritarias sobre la confiabilidad, como en el streaming de video o juegos en línea, pero no en una aplicación de chat.
-
-### ¿Por qué no se eligió UDP?
-
-Si bien **UDP** tiene ventajas en términos de simplicidad y velocidad, no es adecuado para aplicaciones de chat debido a la falta de mecanismos de control y confiabilidad. En aplicaciones donde la prioridad es la entrega rápida pero no necesariamente confiable (como transmisiones en tiempo real o ciertos tipos de videojuegos), UDP sería una opción preferible, pero para la comunicación texto a texto, la confiabilidad y el orden de los mensajes es esencial, lo que justifica la elección de TCP.
-
-En resumen, la naturaleza confiable y orientada a la conexión de **TCP** lo convierte en la mejor opción para asegurar una experiencia de chat fluida y coherente entre los usuarios.
-
----
-
-## Encapsulación y Desencapsulación de Datos en el Protocolo de Chat TCP
-
-En este proyecto, el proceso de encapsulación y desencapsulación de los datos se produce entre la **capa de aplicación** y la **capa de transporte** (TCP), permitiendo que los mensajes del chat se transmitan correctamente a través de la red.
-
-### Encapsulación de Datos
-
-Cuando el cliente o servidor envía un mensaje o comando, este se origina en la capa de aplicación del modelo OSI. A continuación, se describen los pasos de encapsulación que se llevan a cabo:
-
-1. **Capa de Aplicación (Cliente/Servidor)**:
-   - El mensaje del chat o comando del cliente (por ejemplo, un comando `MESSAGE`, `JOIN`, `ROOM`, etc.) se genera en el código de la aplicación. Este mensaje es un simple string que representa los datos que se desean enviar.
-   
-   - Los datos son procesados y preparados en formato de texto plano (cadena de caracteres). Por ejemplo, si el cliente envía un mensaje de texto, este mensaje se encapsula en un paquete específico del protocolo de la aplicación, como `"MESSAGE hola a todos"`.
-
-2. **Capa de Transporte (TCP)**:
-   - El mensaje generado por la aplicación se envía a la capa de transporte, donde el protocolo **TCP** lo divide en segmentos si es necesario. 
-   
-   - TCP garantiza la **fiabilidad** de la transmisión, por lo que agrega cabeceras adicionales al mensaje, que incluyen información de control como números de secuencia, puertos origen y destino, y suma de verificación para asegurar la integridad de los datos.
-
-   - Estos segmentos de TCP encapsulan los datos de la capa de aplicación, preparándolos para ser enviados a través de la red.
-
-3. **Capa de Red (IP)**:
-   - La capa de transporte entrega los segmentos TCP a la capa de red, donde se encapsulan en **paquetes IP**. Estos paquetes IP contienen la dirección IP de origen y destino para que puedan ser entregados a la máquina correcta.
-
-4. **Capa de Enlace de Datos**:
-   - En la capa de enlace de datos, los paquetes IP se encapsulan en **tramas** que son transmitidas a través del medio físico (cableado o inalámbrico).
-
-### Desencapsulación de Datos
-
-Cuando un cliente o servidor recibe datos, el proceso inverso ocurre, desencapsulando los datos a medida que pasan desde la capa física hasta la capa de aplicación:
-
-1. **Capa de Enlace de Datos**:
-   - Los datos son recibidos en forma de **tramas**. La capa de enlace de datos procesa estas tramas y las desencapsula, entregando los **paquetes IP** a la capa de red.
-
-2. **Capa de Red (IP)**:
-   - La capa de red procesa los paquetes IP, verifica las direcciones IP de destino y origen, y luego desencapsula el **segmento TCP** para entregarlo a la capa de transporte.
-
-3. **Capa de Transporte (TCP)**:
-   - En la capa de transporte, el protocolo TCP verifica que los segmentos recibidos estén en el orden correcto y que no haya errores utilizando los números de secuencia y los mecanismos de control de flujo y error. Si todo es correcto, el TCP desencapsula los datos y los entrega a la capa de aplicación.
-
-4. **Capa de Aplicación (Cliente/Servidor)**:
-   - Finalmente, los datos desencapsulados llegan a la capa de aplicación. El cliente o el servidor recibe el mensaje original, que puede ser un comando (como `MESSAGE hola a todos`) o cualquier otro mensaje que fue enviado por el otro extremo.
-
-### Resumen del Flujo de Encapsulación y Desencapsulación
-
-- **Encapsulación**: Los datos generados en la capa de aplicación (comandos y mensajes) son encapsulados en segmentos TCP por la capa de transporte, que a su vez son encapsulados en paquetes IP en la capa de red, y finalmente en tramas en la capa de enlace de datos antes de ser transmitidos.
-  
-- **Desencapsulación**: Cuando los datos llegan al destino, las tramas son desencapsuladas para obtener los paquetes IP, los paquetes son desencapsulados para obtener los segmentos TCP, y finalmente los datos originales son recuperados y entregados a la aplicación.
-
-### Ejemplo en el Proyecto
-
-Cuando un cliente envía el comando:
-```plaintext
-MESSAGE hola a todos
-```
-
-1. Este mensaje es enviado desde la capa de aplicación al servidor.
-2. TCP lo encapsula en un segmento, añadiendo cabeceras para asegurar la fiabilidad de la transmisión.
-3. El mensaje viaja a través de la red como parte de un paquete IP.
-4. El servidor recibe el paquete, desencapsula los segmentos TCP y entrega el comando `MESSAGE hola a todos` a la aplicación del servidor.
-5. El servidor retransmite el mensaje a los demás clientes, siguiendo un proceso similar de encapsulación y desencapsulación.
-
-Este proceso garantiza que el mensaje llegue de forma confiable y completa desde un cliente a otro a través del servidor, sin perder información ni desordenar los datos.
-
----
-
-
-## Conclusiones
-
-Este proyecto ha demostrado la capacidad de implementar una aplicación de chat en tiempo real utilizando los principios básicos de los sockets TCP en Python. El sistema ha logrado satisfacer los requisitos fundamentales, como permitir la comunicación entre múltiples usuarios y la creación de salas de chat dinámicas.
-
-Sin embargo, aún existen áreas de mejora, especialmente en cuanto a la adición de características avanzadas como la transferencia de archivos y la seguridad de los datos transmitidos. Además, se podrían agregar funcionalidades adicionales como la persistencia de mensajes, autenticación de usuarios, o la creación de roles dentro de las salas.
-
-El uso de hilos ha sido fundamental para gestionar múltiples clientes y mantener la aplicación responsiva, tanto en el cliente como en el servidor. Sin embargo, se debe tener cuidado con posibles problemas de sincronización y recursos compartidos si se escalan las funcionalidades del sistema.
-
 # RFC: Protocolo de Chat TCP - Wassop
 
 ## 1. Introducción
@@ -276,7 +151,7 @@ Cada comando enviado desde el cliente al servidor sigue este formato:
 
 Donde `<COMANDO>` es la acción que se desea realizar (por ejemplo, unirse a una sala o enviar un mensaje), y `[Argumento]` es el parámetro adicional necesario para ejecutar el comando.
 
-### 5.2 Lista de Comandos
+### 5.2 Lista de Comandos Internos
 
 - **JOIN [nombre_usuario]**: El cliente se conecta al servidor con un nombre de usuario. Si el nombre ya está en uso, el servidor devolverá un error.
   
@@ -284,16 +159,21 @@ Donde `<COMANDO>` es la acción que se desea realizar (por ejemplo, unirse a una
   
 - **LIST_ROOMS**: Solicita una lista de todas las salas activas en el servidor.
   
-- **EXIT [nombre_sala]**: El cliente abandona la sala indicada. El servidor notifica a los otros usuarios en la sala sobre la salida.
-  
 - **MESSAGE [mensaje]**: Envia un mensaje de texto a todos los usuarios en la sala actual.
+
+- **OK**: Respuesta dada por el servidor en caso de confirmación.
   
-- **QUIT**: Cierra la conexión con el servidor y termina la sesión del cliente.
+- **ERROR**: Respuesta dada por el servidor en caso de error.
 
+Estos comandos son utilizados por el protocolo ne forma interna, no directamente por el usuario
+  
 ### 5.3 Comandos Interactivos
-
-- **LOVE**: Envía el emoji ❤️ a todos los usuarios de la sala.
+- **REFR**: Resfresca las salas disponibles.
 - **EXIT**: Comando especial para salir de la sala actual y volver al menú principal.
+- **QUIT**: Cierra la conexión con el servidor y termina la sesión del cliente.
+- **LOVE**: Envía el emoji ❤️ a todos los usuarios de la sala.
+- **LIKE**: Envía el emoji 👍 a todos los usuarios de la sala.
+- **DISLIKE**: Envía el emoji 👎 a todos los usuarios de la sala.
 
 ## 6. Comunicación y Flujos
 
@@ -312,7 +192,7 @@ Donde `<COMANDO>` es la acción que se desea realizar (por ejemplo, unirse a una
 - El servidor retransmite el mensaje a todos los usuarios en la misma sala excepto al remitente.
 
 ### 6.4 Salida de la Sala y Cierre de Sesión
-1. Para salir de una sala, el cliente utiliza el comando `EXIT [nombre_sala]`.
+1. Para salir de una sala, el cliente utiliza el comando `EXIT`.
 2. Para desconectarse completamente del servidor, el cliente envía el comando `QUIT`.
 
 ## 7. Manejando Errores
@@ -526,6 +406,131 @@ Este protocolo ha sido diseñado para ofrecer un chat en tiempo real con múltip
 4. **Cierre**: Los clientes pueden desconectarse en cualquier momento, y el servidor gestiona la desconexión notificando a los otros usuarios de la sala.
 
 ---
+
+## Aspectos Logrados y No logrados
+
+### Aspectos logrados:
+
+1. **Comunicación en tiempo real**: El sistema permite la comunicación fluida entre múltiples usuarios en tiempo real a través de salas.
+2. **Soporte para múltiples salas**: Los usuarios pueden crear o unirse a diferentes salas de chat, sin límite en el número de salas activas.
+3. **Gestión robusta de desconexiones**: El servidor es capaz de manejar desconexiones de clientes sin interrumpir el funcionamiento de la sala ni afectar a otros usuarios.
+4. **Soporte básico para comandos interactivos**: Se han añadido comandos como enviar emojis (`LOVE`), (`LIKE`) o (`DISLIKE`), listar salas, y salir de la sala (`EXIT`).
+
+### Aspectos no logrados:
+
+1. **Transferencia de archivos**: No se ha implementado el soporte para enviar archivos entre los usuarios.
+2. **Persistencia de mensajes**: No se almacena un historial de los mensajes de chat, por lo que los usuarios no pueden ver mensajes anteriores si se conectan más tarde.
+3. **Autenticación y control de acceso**: Actualmente, cualquier usuario puede unirse a cualquier sala sin restricciones, lo que limita el control sobre quién accede a qué sala.
+4. **Encriptación de mensajes**: Los mensajes se envían sin cifrado, lo que podría ser un riesgo en redes no seguras.
+
+## Elección del Protocolo de Transporte: TCP vs UDP
+
+### ¿Por qué se escogió TCP en lugar de UDP?
+
+La elección del protocolo de transporte fue una de las decisiones clave en el diseño de esta aplicación de chat. Para garantizar una comunicación eficiente, confiable y en tiempo real entre los usuarios, se eligió TCP (Transmission Control Protocol) en lugar de UDP (User Datagram Protocol) por las siguientes razones:
+
+1. **Confiabilidad**: 
+   - TCP es un protocolo orientado a la conexión que garantiza que los mensajes lleguen en el orden correcto y sin pérdidas. Esto es crucial en una aplicación de chat, donde cada mensaje debe entregarse sin errores para asegurar una conversación coherente entre los usuarios.
+   - UDP, por otro lado, no garantiza la entrega de paquetes ni el orden, lo que podría llevar a la pérdida o entrega desordenada de los mensajes, generando confusión en las conversaciones.
+
+2. **Control de flujo y congestión**: 
+   - TCP incluye mecanismos de control de flujo y congestión, lo que significa que ajusta dinámicamente la velocidad de transmisión de datos según las condiciones de la red. Esto asegura que la comunicación se mantenga estable incluso si la red experimenta fluctuaciones de rendimiento.
+   - UDP, al no tener control de flujo, puede inundar la red con paquetes sin considerar la capacidad de la red o del cliente para procesar esos paquetes.
+
+3. **Integridad de los datos**:
+   - TCP utiliza un sistema de verificación para asegurarse de que los datos lleguen completos y sin errores. En el contexto de un chat, esto es fundamental para que los mensajes no se corrompan durante la transmisión.
+   - En UDP, la verificación de la integridad de los datos es mínima, por lo que podría haber problemas si algunos paquetes se pierden o se corrompen.
+
+4. **Necesidad de una conexión estable**:
+   - Dado que en este proyecto los usuarios deben mantenerse conectados durante toda la sesión de chat, TCP es ideal porque establece y mantiene una conexión entre el servidor y el cliente mientras dure la sesión. Esto permite que los mensajes fluyan de forma continua.
+   - UDP, al ser un protocolo sin conexión, no establece este tipo de vínculo persistente entre cliente y servidor, lo que podría causar interrupciones si hay problemas en la red.
+
+5. **Manejo de sesiones largas**:
+   - En una aplicación de chat, los usuarios suelen permanecer conectados durante periodos prolongados de tiempo. TCP es más adecuado para este tipo de sesiones largas porque gestiona el estado de la conexión, garantizando que el flujo de mensajes se mantenga estable.
+   - UDP, al no mantener el estado de la conexión, es más adecuado para aplicaciones donde la velocidad y la eficiencia son prioritarias sobre la confiabilidad, como en el streaming de video o juegos en línea, pero no en una aplicación de chat.
+
+### ¿Por qué no se eligió UDP?
+
+Si bien **UDP** tiene ventajas en términos de simplicidad y velocidad, no es adecuado para aplicaciones de chat debido a la falta de mecanismos de control y confiabilidad. En aplicaciones donde la prioridad es la entrega rápida pero no necesariamente confiable (como transmisiones en tiempo real o ciertos tipos de videojuegos), UDP sería una opción preferible, pero para la comunicación texto a texto, la confiabilidad y el orden de los mensajes es esencial, lo que justifica la elección de TCP.
+
+En resumen, la naturaleza confiable y orientada a la conexión de **TCP** lo convierte en la mejor opción para asegurar una experiencia de chat fluida y coherente entre los usuarios.
+
+---
+
+## Encapsulación y Desencapsulación de Datos en el Protocolo de Chat TCP
+
+En este proyecto, el proceso de encapsulación y desencapsulación de los datos se produce entre la **capa de aplicación** y la **capa de transporte** (TCP), permitiendo que los mensajes del chat se transmitan correctamente a través de la red.
+
+### Encapsulación de Datos
+
+Cuando el cliente o servidor envía un mensaje o comando, este se origina en la capa de aplicación del modelo OSI. A continuación, se describen los pasos de encapsulación que se llevan a cabo:
+
+1. **Capa de Aplicación (Cliente/Servidor)**:
+   - El mensaje del chat o comando del cliente (por ejemplo, un comando `MESSAGE`, `JOIN`, `ROOM`, etc.) se genera en el código de la aplicación. Este mensaje es un simple string que representa los datos que se desean enviar.
+   
+   - Los datos son procesados y preparados en formato de texto plano (cadena de caracteres). Por ejemplo, si el cliente envía un mensaje de texto, este mensaje se encapsula en un paquete específico del protocolo de la aplicación, como `"MESSAGE hola a todos"`.
+
+2. **Capa de Transporte (TCP)**:
+   - El mensaje generado por la aplicación se envía a la capa de transporte, donde el protocolo **TCP** lo divide en segmentos si es necesario. 
+   
+   - TCP garantiza la **fiabilidad** de la transmisión, por lo que agrega cabeceras adicionales al mensaje, que incluyen información de control como números de secuencia, puertos origen y destino, y suma de verificación para asegurar la integridad de los datos.
+
+   - Estos segmentos de TCP encapsulan los datos de la capa de aplicación, preparándolos para ser enviados a través de la red.
+
+3. **Capa de Red (IP)**:
+   - La capa de transporte entrega los segmentos TCP a la capa de red, donde se encapsulan en **paquetes IP**. Estos paquetes IP contienen la dirección IP de origen y destino para que puedan ser entregados a la máquina correcta.
+
+4. **Capa de Enlace de Datos**:
+   - En la capa de enlace de datos, los paquetes IP se encapsulan en **tramas** que son transmitidas a través del medio físico (cableado o inalámbrico).
+
+### Desencapsulación de Datos
+
+Cuando un cliente o servidor recibe datos, el proceso inverso ocurre, desencapsulando los datos a medida que pasan desde la capa física hasta la capa de aplicación:
+
+1. **Capa de Enlace de Datos**:
+   - Los datos son recibidos en forma de **tramas**. La capa de enlace de datos procesa estas tramas y las desencapsula, entregando los **paquetes IP** a la capa de red.
+
+2. **Capa de Red (IP)**:
+   - La capa de red procesa los paquetes IP, verifica las direcciones IP de destino y origen, y luego desencapsula el **segmento TCP** para entregarlo a la capa de transporte.
+
+3. **Capa de Transporte (TCP)**:
+   - En la capa de transporte, el protocolo TCP verifica que los segmentos recibidos estén en el orden correcto y que no haya errores utilizando los números de secuencia y los mecanismos de control de flujo y error. Si todo es correcto, el TCP desencapsula los datos y los entrega a la capa de aplicación.
+
+4. **Capa de Aplicación (Cliente/Servidor)**:
+   - Finalmente, los datos desencapsulados llegan a la capa de aplicación. El cliente o el servidor recibe el mensaje original, que puede ser un comando (como `MESSAGE hola a todos`) o cualquier otro mensaje que fue enviado por el otro extremo.
+
+### Resumen del Flujo de Encapsulación y Desencapsulación
+
+- **Encapsulación**: Los datos generados en la capa de aplicación (comandos y mensajes) son encapsulados en segmentos TCP por la capa de transporte, que a su vez son encapsulados en paquetes IP en la capa de red, y finalmente en tramas en la capa de enlace de datos antes de ser transmitidos.
+  
+- **Desencapsulación**: Cuando los datos llegan al destino, las tramas son desencapsuladas para obtener los paquetes IP, los paquetes son desencapsulados para obtener los segmentos TCP, y finalmente los datos originales son recuperados y entregados a la aplicación.
+
+### Ejemplo en el Proyecto
+
+Cuando un cliente envía el comando:
+```plaintext
+MESSAGE hola a todos
+```
+
+1. Este mensaje es enviado desde la capa de aplicación al servidor.
+2. TCP lo encapsula en un segmento, añadiendo cabeceras para asegurar la fiabilidad de la transmisión.
+3. El mensaje viaja a través de la red como parte de un paquete IP.
+4. El servidor recibe el paquete, desencapsula los segmentos TCP y entrega el comando `MESSAGE hola a todos` a la aplicación del servidor.
+5. El servidor retransmite el mensaje a los demás clientes, siguiendo un proceso similar de encapsulación y desencapsulación.
+
+Este proceso garantiza que el mensaje llegue de forma confiable y completa desde un cliente a otro a través del servidor, sin perder información ni desordenar los datos.
+
+---
+
+
+## Conclusiones
+
+Este proyecto ha demostrado la capacidad de implementar una aplicación de chat en tiempo real utilizando los principios básicos de los sockets TCP en Python. El sistema ha logrado satisfacer los requisitos fundamentales, como permitir la comunicación entre múltiples usuarios y la creación de salas de chat dinámicas.
+
+Sin embargo, aún existen áreas de mejora, especialmente en cuanto a la adición de características avanzadas como la transferencia de archivos y la seguridad de los datos transmitidos. Además, se podrían agregar funcionalidades adicionales como la persistencia de mensajes, autenticación de usuarios, o la creación de roles dentro de las salas.
+
+El uso de hilos ha sido fundamental para gestionar múltiples clientes y mantener la aplicación responsiva, tanto en el cliente como en el servidor. Sin embargo, se debe tener cuidado con posibles problemas de sincronización y recursos compartidos si se escalan las funcionalidades del sistema.
+
 
 ## Replicación del Proyecto
 
