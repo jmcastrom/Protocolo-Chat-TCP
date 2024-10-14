@@ -221,7 +221,8 @@ Este protocolo ha sido diseñado para ofrecer un chat en tiempo real con múltip
 - **Persistencia de mensajes**: Permitir que los usuarios accedan a un historial de mensajes al entrar en una sala.
 - **Transferencia de archivos**: Agregar soporte para la transmisión de archivos entre usuarios.
 
-# Descripción de cada función en el código
+---
+## Descripción de cada función en el código
 ---
 
 ## Cliente
