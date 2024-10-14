@@ -1,6 +1,7 @@
-# Protocolo-Chat-TCP
+# Protocolo Chat-TCP, Juan Miguel Castro
 
-# Proyecto de Chat con Salas - Wassop by Juan Miguel
+# Proyecto de Chat con Salas - My Chat Protocol
+
 
 ## Introducción
 
@@ -161,6 +162,73 @@ La elección del protocolo de transporte fue una de las decisiones clave en el d
 Si bien **UDP** tiene ventajas en términos de simplicidad y velocidad, no es adecuado para aplicaciones de chat debido a la falta de mecanismos de control y confiabilidad. En aplicaciones donde la prioridad es la entrega rápida pero no necesariamente confiable (como transmisiones en tiempo real o ciertos tipos de videojuegos), UDP sería una opción preferible, pero para la comunicación texto a texto, la confiabilidad y el orden de los mensajes es esencial, lo que justifica la elección de TCP.
 
 En resumen, la naturaleza confiable y orientada a la conexión de **TCP** lo convierte en la mejor opción para asegurar una experiencia de chat fluida y coherente entre los usuarios.
+
+---
+
+## Encapsulación y Desencapsulación de Datos en el Protocolo de Chat TCP
+
+En este proyecto, el proceso de encapsulación y desencapsulación de los datos se produce entre la **capa de aplicación** y la **capa de transporte** (TCP), permitiendo que los mensajes del chat se transmitan correctamente a través de la red.
+
+### Encapsulación de Datos
+
+Cuando el cliente o servidor envía un mensaje o comando, este se origina en la capa de aplicación del modelo OSI. A continuación, se describen los pasos de encapsulación que se llevan a cabo:
+
+1. **Capa de Aplicación (Cliente/Servidor)**:
+   - El mensaje del chat o comando del cliente (por ejemplo, un comando `MESSAGE`, `JOIN`, `ROOM`, etc.) se genera en el código de la aplicación. Este mensaje es un simple string que representa los datos que se desean enviar.
+   
+   - Los datos son procesados y preparados en formato de texto plano (cadena de caracteres). Por ejemplo, si el cliente envía un mensaje de texto, este mensaje se encapsula en un paquete específico del protocolo de la aplicación, como `"MESSAGE hola a todos"`.
+
+2. **Capa de Transporte (TCP)**:
+   - El mensaje generado por la aplicación se envía a la capa de transporte, donde el protocolo **TCP** lo divide en segmentos si es necesario. 
+   
+   - TCP garantiza la **fiabilidad** de la transmisión, por lo que agrega cabeceras adicionales al mensaje, que incluyen información de control como números de secuencia, puertos origen y destino, y suma de verificación para asegurar la integridad de los datos.
+
+   - Estos segmentos de TCP encapsulan los datos de la capa de aplicación, preparándolos para ser enviados a través de la red.
+
+3. **Capa de Red (IP)**:
+   - La capa de transporte entrega los segmentos TCP a la capa de red, donde se encapsulan en **paquetes IP**. Estos paquetes IP contienen la dirección IP de origen y destino para que puedan ser entregados a la máquina correcta.
+
+4. **Capa de Enlace de Datos**:
+   - En la capa de enlace de datos, los paquetes IP se encapsulan en **tramas** que son transmitidas a través del medio físico (cableado o inalámbrico).
+
+### Desencapsulación de Datos
+
+Cuando un cliente o servidor recibe datos, el proceso inverso ocurre, desencapsulando los datos a medida que pasan desde la capa física hasta la capa de aplicación:
+
+1. **Capa de Enlace de Datos**:
+   - Los datos son recibidos en forma de **tramas**. La capa de enlace de datos procesa estas tramas y las desencapsula, entregando los **paquetes IP** a la capa de red.
+
+2. **Capa de Red (IP)**:
+   - La capa de red procesa los paquetes IP, verifica las direcciones IP de destino y origen, y luego desencapsula el **segmento TCP** para entregarlo a la capa de transporte.
+
+3. **Capa de Transporte (TCP)**:
+   - En la capa de transporte, el protocolo TCP verifica que los segmentos recibidos estén en el orden correcto y que no haya errores utilizando los números de secuencia y los mecanismos de control de flujo y error. Si todo es correcto, el TCP desencapsula los datos y los entrega a la capa de aplicación.
+
+4. **Capa de Aplicación (Cliente/Servidor)**:
+   - Finalmente, los datos desencapsulados llegan a la capa de aplicación. El cliente o el servidor recibe el mensaje original, que puede ser un comando (como `MESSAGE hola a todos`) o cualquier otro mensaje que fue enviado por el otro extremo.
+
+### Resumen del Flujo de Encapsulación y Desencapsulación
+
+- **Encapsulación**: Los datos generados en la capa de aplicación (comandos y mensajes) son encapsulados en segmentos TCP por la capa de transporte, que a su vez son encapsulados en paquetes IP en la capa de red, y finalmente en tramas en la capa de enlace de datos antes de ser transmitidos.
+  
+- **Desencapsulación**: Cuando los datos llegan al destino, las tramas son desencapsuladas para obtener los paquetes IP, los paquetes son desencapsulados para obtener los segmentos TCP, y finalmente los datos originales son recuperados y entregados a la aplicación.
+
+### Ejemplo en el Proyecto
+
+Cuando un cliente envía el comando:
+```plaintext
+MESSAGE hola a todos
+```
+
+1. Este mensaje es enviado desde la capa de aplicación al servidor.
+2. TCP lo encapsula en un segmento, añadiendo cabeceras para asegurar la fiabilidad de la transmisión.
+3. El mensaje viaja a través de la red como parte de un paquete IP.
+4. El servidor recibe el paquete, desencapsula los segmentos TCP y entrega el comando `MESSAGE hola a todos` a la aplicación del servidor.
+5. El servidor retransmite el mensaje a los demás clientes, siguiendo un proceso similar de encapsulación y desencapsulación.
+
+Este proceso garantiza que el mensaje llegue de forma confiable y completa desde un cliente a otro a través del servidor, sin perder información ni desordenar los datos.
+
+---
 
 
 ## Conclusiones
