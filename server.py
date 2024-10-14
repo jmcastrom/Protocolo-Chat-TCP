@@ -79,10 +79,11 @@ def manejar_cliente(conn, addr):
             print(f"{username} se ha desconectado.")
         conn.close()
 
-# Enviar lista de salas disponibles al cliente
+# Enviar lista de salas disponibles al cliente con el número de usuarios en cada sala
 def enviar_lista_salas(conn):
-    lista_salas = "\n".join(salas.keys())
+    lista_salas = "\n".join([f"{nombre_sala} ({len(usuarios)})" for nombre_sala, usuarios in salas.items()])
     conn.send(f"Salas disponibles:\n{lista_salas}\n".encode('utf-8'))
+
 
 # Notificar a todos los usuarios de una sala, excepto al remitente
 def notificar_sala(sala, mensaje, remitente):
