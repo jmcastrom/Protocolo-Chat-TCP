@@ -94,6 +94,26 @@ juanmi se unió a la sala Sala1
 Servidor recibió mensaje: juanmi: hola a todos!
 Retransmitiendo a todos los usuarios de Sala1.
 ```
+## Arquitectura del Sistema
+
+La aplicación de chat sigue una arquitectura cliente-servidor, donde múltiples clientes pueden conectarse simultáneamente a un servidor central que actúa como intermediario en la comunicación.
+
+- **Servidor**: 
+  - El servidor mantiene un diccionario de salas y usuarios conectados.
+  - Cada conexión entrante es gestionada mediante un hilo separado, lo que permite gestionar múltiples usuarios de forma concurrente.
+  - El servidor retransmite mensajes dentro de las salas y gestiona la entrada/salida de usuarios de cada sala.
+
+- **Cliente**: 
+  - Los clientes se conectan al servidor utilizando el protocolo TCP.
+  - Cada cliente es capaz de unirse a salas, enviar y recibir mensajes en tiempo real.
+  - Los mensajes se manejan de manera concurrente utilizando hilos para evitar bloqueos.
+
+### Diagrama de Arquitectura:
+
+![Diagrama de Arquitectura](https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEimbNVd8c7SGDFMRVL3D810CeOyQi9DR9xpDVVbSyb9EyuciwsuZyM1D7SVMngKb4iqwLMwp3UreHTW5pM-SiEC-5jM3JSCbktTap5wz60AWv6xXg1I7GRlILgccjclc2SCeduYv3veRFUJ/s1600/ClienteServidor.png)
+
+
+
 ## Aspectos Logrados y No logrados
 
 ### Aspectos logrados:
@@ -253,132 +273,191 @@ Este protocolo ha sido diseñado para ofrecer un chat en tiempo real con múltip
 - **Persistencia de mensajes**: Permitir que los usuarios accedan a un historial de mensajes al entrar en una sala.
 - **Transferencia de archivos**: Agregar soporte para la transmisión de archivos entre usuarios.
 
-# Descripción de cada método en el código
+# Descripción de cada función en el código
+---
 
 ## Cliente
 
-### 1. `recibir_mensajes(client_socket)`
-**Descripción**: Esta función se ejecuta en un hilo separado y se encarga de recibir los mensajes enviados por el servidor al cliente. Escucha continuamente la conexión y, cuando recibe un mensaje, lo muestra en la pantalla del usuario.
+### 1. **`cliente_tcp()`**
+**Descripción**: Esta es la función principal del cliente. Se encarga de establecer la conexión con el servidor usando el protocolo TCP, gestionar el nombre de usuario y delegar el control al menú principal.
+
+- **Comunicación**:
+  - Establece la conexión con el servidor usando `socket.connect()`.
+  - Llama a `menu_principal()` para mostrar el menú principal e interactuar con el servidor.
+
+---
+
+### 2. **`menu_principal(client_socket, username)`**
+**Descripción**: Muestra el menú principal del cliente, permitiendo al usuario ver las salas activas, unirse a una sala, o salir de la aplicación.
+
 - **Argumentos**:
   - `client_socket`: El socket del cliente que está conectado al servidor.
-- **Detalles**:
-  - Escucha mensajes en un bucle continuo mientras la variable `bandera_salida` sea `False`.
-  - Muestra el mensaje en la consola, pero si la conexión se cierra, detecta el error y termina.
-
-### 2. `comando_listar_salas(client_socket)`
-**Descripción**: Esta función envía una solicitud al servidor para obtener una lista de todas las salas activas y muestra esta lista al usuario.
-- **Argumentos**:
-  - `client_socket`: El socket del cliente.
-- **Detalles**:
-  - Envia el comando `LIST_ROOMS` al servidor.
-  - Recibe la lista de salas disponibles y las imprime.
-
-### 3. `comando_unirse_sala(client_socket, username, comando)`
-**Descripción**: Permite que el usuario se una a una sala existente o cree una nueva si no existe. Una vez unido, el cliente interactúa con otros usuarios de esa sala.
-- **Argumentos**:
-  - `client_socket`: El socket del cliente.
-  - `username`: El nombre del usuario que intenta unirse a la sala.
-  - `comando`: El nombre de la sala a la que el usuario quiere unirse.
-- **Detalles**:
-  - Envía el comando `ROOM [nombre_sala]` al servidor.
-  - Si la unión a la sala es exitosa, comienza a recibir mensajes de esa sala y permite la interacción con otros usuarios.
-
-### 4. `comando_salir(client_socket)`
-**Descripción**: Cierra la conexión del cliente con el servidor y termina el programa.
-- **Argumentos**:
-  - `client_socket`: El socket del cliente.
-- **Detalles**:
-  - Imprime un mensaje de salida, cierra el socket y termina la ejecución con `sys.exit()`.
-
-### 5. `interactuar_en_sala(client_socket, username, nombre_sala)`
-**Descripción**: Proporciona la lógica principal de la interacción del usuario dentro de una sala. Permite al cliente enviar mensajes o comandos especiales, y salir de la sala con el comando `EXIT`.
-- **Argumentos**:
-  - `client_socket`: El socket del cliente.
-  - `username`: El nombre del usuario que está interactuando en la sala.
-  - `nombre_sala`: El nombre de la sala actual.
-- **Detalles**:
-  - Recibe la entrada del usuario continuamente mientras esté en la sala.
-  - Envía los mensajes al servidor utilizando el comando `MESSAGE`.
-  - Si el usuario escribe `EXIT`, sale de la sala y regresa al menú principal.
-
-### 6. `enviar_comando(client_socket, comando)`
-**Descripción**: Esta función envía un comando o mensaje desde el cliente al servidor.
-- **Argumentos**:
-  - `client_socket`: El socket del cliente.
-  - `comando`: El comando que se va a enviar al servidor.
-- **Detalles**:
-  - Envía el comando formateado con una nueva línea (`\n`) codificado en UTF-8.
-
-### 7. `menu_principal(client_socket, username)`
-**Descripción**: Muestra el menú principal del cliente, permitiendo al usuario unirse a una sala, listar las salas disponibles, o salir de la aplicación.
-- **Argumentos**:
-  - `client_socket`: El socket del cliente.
   - `username`: El nombre de usuario del cliente.
-- **Detalles**:
-  - Permite al usuario elegir una sala, listar salas o salir.
-  - En función del comando, llama a otras funciones como `comando_listar_salas`, `comando_unirse_sala`, o `comando_salir`.
+  
+- **Comunicación**:
+  - Llama a `comando_listar_salas()` para obtener la lista de salas activas en el servidor.
+  - Llama a `comando_unirse_sala()` para que el usuario se una a una sala específica.
+  - Llama a `comando_salir()` si el usuario decide salir del programa.
 
-### 8. `cliente_tcp()`
-**Descripción**: Es la función principal que establece la conexión TCP con el servidor y gestiona el ciclo de vida del cliente.
-- **Detalles**:
-  - Crea un socket y lo conecta al servidor utilizando la IP y puerto configurados.
-  - Solicita al usuario su nombre de usuario y lo registra en el servidor usando el comando `JOIN`.
-  - Llama al `menu_principal` para comenzar la interacción con el sistema.
+---
+
+### 3. **`comando_listar_salas(client_socket)`**
+**Descripción**: Envía una solicitud al servidor para obtener una lista de todas las salas activas y la muestra al usuario.
+
+- **Argumentos**:
+  - `client_socket`: El socket del cliente que está conectado al servidor.
+  
+- **Comunicación**:
+  - Envía el comando `LIST_ROOMS` al servidor.
+  - Recibe la lista de salas del servidor y la imprime.
+  - Se comunica con `menu_principal()` para mostrar la lista de salas.
+
+---
+
+### 4. **`comando_unirse_sala(client_socket, username, comando)`**
+**Descripción**: Permite que el usuario se una a una sala existente o cree una nueva si no existe. Después de unirse, el cliente interactúa con otros usuarios en esa sala.
+
+- **Argumentos**:
+  - `client_socket`: El socket del cliente.
+  - `username`: El nombre del usuario.
+  - `comando`: El nombre de la sala a la que el usuario quiere unirse.
+  
+- **Comunicación**:
+  - Envía el comando `ROOM [nombre_sala]` al servidor para unirse a una sala.
+  - Llama a `recibir_mensajes()` para empezar a recibir mensajes desde la sala.
+  - Llama a `interactuar_en_sala()` para permitir la interacción en la sala.
+
+---
+
+### 5. **`interactuar_en_sala(client_socket, username, nombre_sala)`**
+**Descripción**: Proporciona la lógica principal para que el usuario interactúe en una sala. Permite enviar mensajes, comandos especiales (como enviar emojis), y salir de la sala con el comando `EXIT`.
+
+- **Argumentos**:
+  - `client_socket`: El socket del cliente.
+  - `username`: El nombre del usuario.
+  - `nombre_sala`: El nombre de la sala en la que el usuario está interactuando.
+  
+- **Comunicación**:
+  - Envía mensajes al servidor usando el comando `MESSAGE`.
+  - Llama a `recibir_mensajes()` para mostrar mensajes recibidos desde el servidor.
+  - Llama a `enviar_comando()` para transmitir comandos como `MESSAGE` o `EXIT` al servidor.
+  - Si el usuario sale de la sala, regresa al `menu_principal()`.
+
+---
+
+### 6. **`recibir_mensajes(client_socket)`**
+**Descripción**: Esta función se ejecuta en un hilo separado y se encarga de recibir mensajes enviados por el servidor y mostrarlos al usuario en tiempo real.
+
+- **Argumentos**:
+  - `client_socket`: El socket del cliente.
+  
+- **Comunicación**:
+  - Recibe mensajes enviados por el servidor.
+  - Se comunica con `interactuar_en_sala()` para mostrar los mensajes al usuario.
+
+---
+
+### 7. **`comando_salir(client_socket)`**
+**Descripción**: Cierra la conexión del cliente con el servidor y finaliza el programa.
+
+- **Argumentos**:
+  - `client_socket`: El socket del cliente.
+  
+- **Comunicación**:
+  - Cierra el socket del cliente.
+  - Finaliza el programa usando `sys.exit()`.
+
+---
+
+### 8. **`enviar_comando(client_socket, comando)`**
+**Descripción**: Envía un comando o mensaje del cliente al servidor.
+
+- **Argumentos**:
+  - `client_socket`: El socket del cliente.
+  - `comando`: El comando que se quiere enviar.
+  
+- **Comunicación**:
+  - Envia el comando `MESSAGE`, `ROOM`, `EXIT` o cualquier otro comando al servidor.
+  - Se comunica con `interactuar_en_sala()`, `comando_unirse_sala()`, entre otras funciones que envían comandos al servidor.
 
 ---
 
 ## Servidor
 
-### 1. `manejar_cliente(conn, addr)`
-**Descripción**: Esta función maneja las conexiones de los clientes. Se ejecuta en un hilo por cada cliente conectado y se encarga de recibir comandos, procesarlos y enviar respuestas o retransmitir mensajes a las salas.
-- **Argumentos**:
-  - `conn`: El socket del cliente conectado.
-  - `addr`: La dirección IP y puerto del cliente.
-- **Detalles**:
-  - Interpreta los comandos `JOIN`, `ROOM`, `LIST_ROOMS`, `EXIT`, y `MESSAGE` enviados por el cliente.
-  - Actualiza el estado del cliente, como su sala actual y el diccionario de usuarios conectados.
-  - Gestiona la desconexión de clientes y notifica al resto de la sala cuando un cliente se desconecta o abandona.
+### 1. **`servidor_tcp()`**
+**Descripción**: Es la función principal del servidor, que inicia el proceso de escucha en un puerto específico y gestiona las conexiones entrantes de clientes. Crea un nuevo hilo para cada cliente conectado.
 
-### 2. `enviar_lista_salas(conn)`
-**Descripción**: Envía al cliente una lista de todas las salas activas en el servidor.
+- **Comunicación**:
+  - Escucha conexiones entrantes en el puerto configurado.
+  - Crea hilos para manejar cada cliente conectado.
+  - Llama a `manejar_cliente()` para gestionar las interacciones con el cliente.
+
+---
+
+### 2. **`manejar_cliente(conn, addr)`**
+**Descripción**: Esta función se ejecuta en un hilo por cada cliente conectado. Gestiona los comandos recibidos por el cliente, retransmite mensajes a otros usuarios en la misma sala, y maneja la salida del cliente.
+
 - **Argumentos**:
   - `conn`: El socket del cliente.
-- **Detalles**:
-  - Formatea la lista de salas disponibles y la envía al cliente.
+  - `addr`: La dirección IP y el puerto del cliente.
+  
+- **Comunicación**:
+  - Interpreta y maneja los comandos `JOIN`, `ROOM`, `LIST_ROOMS`, `EXIT` y `MESSAGE` enviados por el cliente.
+  - Llama a `notificar_sala()` para retransmitir mensajes a los demás usuarios de la sala.
+  - Se comunica con `enviar_lista_salas()` cuando el cliente lista las salas disponibles.
 
-### 3. `notificar_sala(sala, mensaje, remitente)`
-**Descripción**: Envía un mensaje a todos los clientes en una sala excepto al remitente del mensaje.
+---
+
+### 3. **`enviar_lista_salas(conn)`**
+**Descripción**: Envía al cliente una lista de todas las salas activas en el servidor.
+
 - **Argumentos**:
-  - `sala`: El nombre de la sala donde se va a retransmitir el mensaje.
-  - `mensaje`: El mensaje que se va a enviar.
-  - `remitente`: El nombre del usuario que envió el mensaje (para evitar que el mensaje le sea reenviado a él).
-- **Detalles**:
-  - Itera sobre los usuarios en la sala y envía el mensaje a todos excepto al remitente.
-  - Maneja excepciones como `BrokenPipeError` si la conexión con un cliente falla.
+  - `conn`: El socket del cliente.
+  
+- **Comunicación**:
+  - Envía al cliente la lista de salas activas en el servidor.
+  - Se comunica con `manejar_cliente()` para enviar la lista cuando el cliente ejecuta el comando `LIST_ROOMS`.
 
-### 4. `cerrar_servidor(signal, frame)`
-**Descripción**: Cierra el servidor de manera segura cuando se recibe una señal de interrupción (como `Ctrl + C`).
+---
+
+### 4. **`notificar_sala(sala, mensaje, remitente)`**
+**Descripción**: Retransmite un mensaje a todos los usuarios en una sala, excepto al remitente del mensaje.
+
+- **Argumentos**:
+  - `sala`: El nombre de la sala.
+  - `mensaje`: El mensaje que se va a retransmitir.
+  - `remitente`: El usuario que envió el mensaje.
+  
+- **Comunicación**:
+  - Envía mensajes a todos los usuarios conectados a la sala, excepto al remitente.
+  - Se comunica con `manejar_cliente()` para retransmitir mensajes dentro de una sala.
+
+---
+
+### 5. **`cerrar_servidor(signal, frame)`**
+**Descripción**: Maneja el cierre del servidor de forma segura cuando se recibe una señal de interrupción (por ejemplo, `Ctrl + C`).
+
 - **Argumentos**:
   - `signal`: La señal recibida.
-  - `frame`: El frame actual de la ejecución.
-- **Detalles**:
-  - Cierra el socket del servidor y termina la ejecución del programa.
-
-### 5. `servidor_tcp()`
-**Descripción**: Es la función principal que inicia el servidor y gestiona las conexiones entrantes.
-- **Detalles**:
-  - Crea un socket TCP y lo enlaza a una dirección IP y puerto.
-  - Escucha conexiones entrantes en un bucle continuo y para cada conexión crea un nuevo hilo que ejecuta `manejar_cliente`.
+  - `frame`: El frame actual de ejecución.
+  
+- **Comunicación**:
+  - Cierra todas las conexiones activas del servidor.
+  - Finaliza la ejecución del servidor.
 
 ---
 
 ## Flujo General de Ejecución
 
 1. **Servidor**: El servidor se inicia y escucha conexiones en un puerto específico. Cuando un cliente se conecta, se inicia un hilo para manejar a ese cliente.
+
 2. **Cliente**: El cliente se conecta al servidor, envía su nombre de usuario y puede unirse a salas, enviar mensajes, listar salas o salir de la aplicación.
+
 3. **Comunicación**: Los mensajes de los clientes se envían al servidor, que los retransmite a los demás usuarios en la misma sala.
+
 4. **Cierre**: Los clientes pueden desconectarse en cualquier momento, y el servidor gestiona la desconexión notificando a los otros usuarios de la sala.
 
+---
 
 ## Replicación del Proyecto
 
