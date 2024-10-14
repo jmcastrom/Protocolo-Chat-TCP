@@ -516,16 +516,6 @@ Ejecute el siguiente comando para iniciar el cliente:
 ```bash
 python client.py
 ```
-### 6. Comandos Disponibles
-
-Dentro de la aplicación de chat, puedes utilizar los siguientes comandos:
-
-- **Unirse a una sala**: Escribe el nombre de la sala para unirte (por ejemplo, `Sala1`). Si la sala no existe, se creará automáticamente.
-- **Enviar mensaje**: Simplemente escribe el mensaje que deseas enviar.
-- **Comandos especiales**:
-  - `LOVE`: Enviará el emoji ❤️ a todos los usuarios de la sala.
-  - `EXIT`: Saldrá de la sala actual.
-- **Salir del programa**: Usa `QUIT` para salir completamente de la aplicación.
 
 ## Referencias
 
